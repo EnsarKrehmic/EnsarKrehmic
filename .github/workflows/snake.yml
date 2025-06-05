@@ -1,0 +1,43 @@
+name: Generate Snake Animation
+
+on:
+  schedule:
+    - cron: "0 0 * * *"    # Svaki dan u ponoć (UTC)
+  workflow_dispatch:      # Omogućava ručno pokretanje
+
+jobs:
+  generate-snake:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+
+      # ===== 1) Dark Mode SVG =====
+      - name: Generate Dark Mode Snake
+        uses: Platane/snk/svg-only@v3
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          commit_limit: 365
+          outputs: |
+            dist/github-snake-dark.svg?palette=github-dark&color_snake=%23FFD700&color_dots=%23003366,%23005599,%230088CC,%2300BBFF,%23A0DFFF
+
+      # ===== 2) Light Mode SVG =====
+      - name: Generate Light Mode Snake
+        uses: Platane/snk/svg-only@v3
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          commit_limit: 365
+          outputs: |
+            dist/github-snake.svg?palette=github-light&color_snake=%23330000&color_dots=%23E5E5E5,%23CCCCCC,%23AAAAAA,%23777777,%23555555
+
+      # ===== 3) Push to 'output' branch =====
+      - name: Push generated animations to 'output' branch
+        uses: crazy-max/ghaction-github-pages@v3
+        with:
+          target_branch: output
+          build_dir: dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
